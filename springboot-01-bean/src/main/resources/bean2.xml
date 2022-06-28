@@ -8,14 +8,8 @@
        https://www.springframework.org/schema/context/spring-context.xsd">
 
     <!-- 指定扫描包路径 -->
-<!--    <context:component-scan base-package="com.mildlamb.pojo"></context:component-scan>-->
+<!--    <context:component-scan base-package="com.mildlamb.pojo,com.mildlamb.config"></context:component-scan>-->
 
     <!-- xml方式声明自己开发的bean -->
     <bean id="lamb" class="com.mildlamb.pojo.Lamb"></bean>
-
-    <!-- xml方式声明第三方的bean -->
-    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"></bean>
-    <bean class="com.alibaba.druid.pool.DruidDataSource"></bean>
-    <bean class="com.alibaba.druid.pool.DruidDataSource"></bean>
-
 </beans>
