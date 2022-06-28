@@ -1,4 +1,4 @@
-package com.mildlamb.config;
+package com.mildlamb.bean;
 
 import org.springframework.context.annotation.ImportSelector;
 import org.springframework.core.type.AnnotationMetadata;

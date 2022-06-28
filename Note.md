@@ -1,5 +1,5 @@
 # Bean的加载方式
-- xml方式
+## xml方式
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
@@ -16,7 +16,7 @@
 
 </beans>
 ```
-- 注解方式
+## 注解方式
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
@@ -46,7 +46,7 @@ public class DSConfig {
     }
 }
 ```
-- 完全注解方式
+## 完全注解方式
 ```java
 @Configuration
 @ComponentScan(basePackages = {"com.mildlamb.pojo","com.mildlamb.config"})
@@ -73,14 +73,14 @@ public class SpringConfig3 {
     }
 }
 ```
-- 使用@Import注解导入要注入的bean对应的字节码,被导入的bean无需使用注解声明为bean,还可以加载配置类，配置类和其中的bean都会加载成为bean
+## 使用@Import注解导入要注入的bean对应的字节码,被导入的bean无需使用注解声明为bean,还可以加载配置类，配置类和其中的bean都会加载成为bean
 ```java
 @Configuration
 @Import({Lamb.class, Wolf.class,DSConfig.class})
 public class SpringConfig4 {
 }
 ```
-- 使用AnnotationConfigApplicationContext上下文对象在容器中初始化完成后注册bean
+## 使用AnnotationConfigApplicationContext上下文对象在容器中初始化完成后注册bean
 ```java
 public class App5 {
     public static void main(String[] args) {
@@ -102,7 +102,7 @@ public class App5 {
     }
 }
 ```
-- 导入实现了ImportSelector接口的类，实现对导入源的编程式处理，引用者使用@Import进行引用
+## 导入实现了ImportSelector接口的类，实现对导入源的编程式处理，引用者使用@Import进行引用
 ```java
 public class MyImportSelector implements ImportSelector {
     @Override
@@ -131,6 +131,42 @@ public class MyImportSelector implements ImportSelector {
 
         // 参数为要加载的bean的全路径类名
         return new String[]{"com.mildlamb.pojo.Lamb","com.mildlamb.pojo.Wolf"};
+    }
+}
+```
+## 导入实现ImportBeanDefinitionRegistrar接口的类，通过BeanDefinition的主城区注册实名bean，可以实现对容器中bean的裁定，实现不修改源码情况下更换实现的效果
+```java
+public class MyBeanRegistrar implements ImportBeanDefinitionRegistrar {
+    @Override
+    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+        // 1. 使用元数据（importingClassMetadata）进行判定 是否需要加载该bean
+
+        // 2. 创建一个beanDefinition
+        BeanDefinition beanDefinition = BeanDefinitionBuilder.rootBeanDefinition(Wolf.class).getBeanDefinition();
+        // 设置bean为单例
+        beanDefinition.setScope("singleton");
+
+        // 3. 注册BeanDefinition
+        registry.registerBeanDefinition("gnar",beanDefinition);
+    }
+}
+```
+## 导入实现了 BeanDefinitionRegistryPostProcessor 接口的类，通过BeanDefinition的驻长崎注册实名bean，实现对容器中bean的最终裁定
+```java
+public class MyPostProcessor implements BeanDefinitionRegistryPostProcessor {
+    @Override
+    public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry beanDefinitionRegistry) throws BeansException {
+        // 创建一个beanDefinition
+        BeanDefinition beanDefinition = BeanDefinitionBuilder.rootBeanDefinition(RoleServiceImpl4.class).getBeanDefinition();
+        beanDefinition.setScope("singleton");
+
+        // 注册BeanDefinition
+        beanDefinitionRegistry.registerBeanDefinition("roleService",beanDefinition);
+    }
+
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory configurableListableBeanFactory) throws BeansException {
+
     }
 }
 ```
