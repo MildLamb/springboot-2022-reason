@@ -1,4 +1,13 @@
 # Bean的加载方式
+1. xml + <bean/>
+2. xml:context + 扫描 + 注解 
+3. 配置类 + 扫描 + 注解
+4. @Import导入bean的类
+5. AnnotationConfigApplicationContext调用register方法
+6. @Import导入ImportSelector接口实现类
+7. @Import导入ImportBeanDefinitionRegistrar接口实现类
+8. @Import导入BeanDefinitionRegistryPostProcessor接口实现类
+
 ## xml方式
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
