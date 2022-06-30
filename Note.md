@@ -179,3 +179,111 @@ public class MyPostProcessor implements BeanDefinitionRegistryPostProcessor {
     }
 }
 ```
+
+<hr>
+
+# 自动配置原理
+- @SpringBootApplication
+  - @SpringBootConfiguration
+    - @Configuration
+      - @Component
+    - @Indexed
+  - @EnableAutoConfiguration
+    - @AutoConfigurationPackage
+      - @Import({Registrar.class})
+    - @Import({AutoConfigurationImportSelector.class})
+  - @ComponentScan
+
+# 自动配置核心
+- @Import({Registrar.class})   // 设置当前启动类所在的包作为扫描包，后续要针对当前的包进行扫描
+```java
+    static class Registrar implements ImportBeanDefinitionRegistrar, DeterminableImports {
+         ... ...
+
+        public void registerBeanDefinitions(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
+            AutoConfigurationPackages.register(registry, (String[])(new AutoConfigurationPackages.PackageImports(metadata)).getPackageNames().toArray(new String[0]));
+        }
+
+        ...  ...
+    }
+```
+- @Import({AutoConfigurationImportSelector.class})
+```java
+public class AutoConfigurationImportSelector implements DeferredImportSelector, BeanClassLoaderAware, ResourceLoaderAware, BeanFactoryAware, EnvironmentAware, Ordered {}
+```
+```java
+public void process(AnnotationMetadata annotationMetadata, DeferredImportSelector deferredImportSelector) {
+            ... ...
+            AutoConfigurationImportSelector.AutoConfigurationEntry autoConfigurationEntry = ((AutoConfigurationImportSelector)deferredImportSelector).getAutoConfigurationEntry(annotationMetadata);
+            this.autoConfigurationEntries.add(autoConfigurationEntry);
+            Iterator var4 = autoConfigurationEntry.getConfigurations().iterator();
+
+            while(var4.hasNext()) {
+                String importClassName = (String)var4.next();
+                this.entries.putIfAbsent(importClassName, annotationMetadata);
+            }
+
+        }
+```
+
+```java
+protected AutoConfigurationImportSelector.AutoConfigurationEntry getAutoConfigurationEntry(AnnotationMetadata annotationMetadata) {
+        if (!this.isEnabled(annotationMetadata)) {
+            return EMPTY_ENTRY;
+        } else {
+            AnnotationAttributes attributes = this.getAttributes(annotationMetadata);   // 获取不需要的配置  
+            List<String> configurations = this.getCandidateConfigurations(annotationMetadata, attributes);   // 获取候选配置
+            configurations = this.removeDuplicates(configurations);
+            Set<String> exclusions = this.getExclusions(annotationMetadata, attributes);
+            this.checkExcludedClasses(configurations, exclusions);
+            configurations.removeAll(exclusions);
+            configurations = this.getConfigurationClassFilter().filter(configurations);
+            this.fireAutoConfigurationImportEvents(configurations, exclusions);
+            return new AutoConfigurationImportSelector.AutoConfigurationEntry(configurations, exclusions);
+        }
+    }
+```
+
+```java
+ protected List<String> getCandidateConfigurations(AnnotationMetadata metadata, AnnotationAttributes attributes) {
+        List<String> configurations = new ArrayList(SpringFactoriesLoader.loadFactoryNames(this.getSpringFactoriesLoaderFactoryClass(), this.getBeanClassLoader()));
+        ImportCandidates.load(AutoConfiguration.class, this.getBeanClassLoader()).forEach(configurations::add);
+        Assert.notEmpty(configurations, "No auto configuration classes found in META-INF/spring.factories nor in META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports. If you are using a custom packaging, make sure that file is correct.");
+        return configurations;
+    }
+```
+
+```java
+public static List<String> loadFactoryNames(Class<?> factoryType, @Nullable ClassLoader classLoader) {
+        ClassLoader classLoaderToUse = classLoader;
+        if (classLoader == null) {
+            classLoaderToUse = SpringFactoriesLoader.class.getClassLoader();
+        }
+
+        String factoryTypeName = factoryType.getName();
+        return (List)loadSpringFactories(classLoaderToUse).getOrDefault(factoryTypeName, Collections.emptyList());
+    }
+```
+
+```java
+private static Map<String, List<String>> loadSpringFactories(ClassLoader classLoader) {
+                ... ...
+            try{
+                Enumeration urls=classLoader.getResources("META-INF/spring.factories");
+                ... ...
+        }
+```
+
+## Spring Boot 2.7 新特性
+- 自动配置变更（重要）
+自动配置注册文件
+
+- 自动配置注册有了一个比较大的调整，之前都是写在下面 文件中的：
+```text
+META-INF/spring.factories
+```
+
+现在改名了：
+```text
+META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+```
