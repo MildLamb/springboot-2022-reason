@@ -183,6 +183,14 @@ public class MyPostProcessor implements BeanDefinitionRegistryPostProcessor {
 <hr>
 
 # 自动配置原理
+
+```text
+1. springboot启动时加载所有技术实现对应的自动配置类
+2. 检测每个配置类的加载条件是否满足并进行对应的初始化
+3. 切记是先加载所有的外部资源，然后根据外部资源进行条件对比
+```
+
+
 - @SpringBootApplication
   - @SpringBootConfiguration
     - @Configuration
@@ -286,4 +294,36 @@ META-INF/spring.factories
 现在改名了：
 ```text
 META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+```
+
+## 自定义自动配置
+- 添加自定义的自动配置类，resources目录中新建META-INF/spring.factories文件,将自动配置类的全限定类名填写进去
+```properties
+# Auto Configure
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.mildlamb.pojo.Spirit
+```
+
+- 排除某些自动装配的bean
+1. 配置文件配置
+```yaml
+# 排除某些自动装配的bean
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.context.LifecycleAutoConfiguration
+#      - xxx
+```
+2. 启动类注解声明属性
+```java
+// 排除某些自动装配的bean
+@SpringBootApplication(excludeName = {"org.springframework.boot.autoconfigure.context.LifecycleAutoConfiguration"})
+//@Import(Spirit.class)
+public class App {
+    public static void main(String[] args) {
+        ConfigurableApplicationContext run = SpringApplication.run(App.class, args);
+        Spirit bean = run.getBean(Spirit.class);
+        bean.play();
+    }
+}
 ```

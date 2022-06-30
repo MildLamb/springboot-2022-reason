@@ -4,11 +4,14 @@ import com.mildlamb.properties.SpiritProperties;
 import lombok.Data;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 
 @Data
+@ConditionalOnClass(value = {Lamb.class},name = "com.mildlamb.pojo.Gnar")
 @EnableConfigurationProperties(SpiritProperties.class)
 public class Spirit implements ApplicationContextAware {
 

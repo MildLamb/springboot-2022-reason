@@ -5,3 +5,11 @@ spirit:
   wolf:
     name: 狼
     age: 1500
+
+
+# 排除某些自动装配的bean
+spring:
+  autoconfigure:
+    exclude:
+#      - org.springframework.boot.autoconfigure.context.LifecycleAutoConfiguration
+#      - xxx
