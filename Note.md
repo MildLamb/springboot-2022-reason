@@ -327,3 +327,88 @@ public class App {
     }
 }
 ```
+
+<hr>
+
+# 自定义starter
+## 案例：记录系统访客独立IP访问次数
+- 需求分析
+  1. 数据记录方式：Map/Redis
+  2. 功能触发位置：每次web请求(拦截器)
+     1. 步骤一：降低难度，主动调用，仅统计单一操作访问次数(例如查询)
+     2. 步骤二：开发拦截器
+  3. 业务参数(配置项)
+     1. 输出频度，默认10s
+     2. 数据特征：累计数据/阶段数据，默认为累计数据
+     3. 输出格式：详细模式/简易模式
+
+## 开发
+- 导入依赖
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+```
+- 编写业务类 IpCountService
+```java
+public class IpCountService {
+
+    private Map<String,Integer> ipCountMap = new HashMap<>();
+
+    @Autowired
+    // 当前的request对象的注入工作，由使用当前starter的项目提供自动装配
+    private HttpServletRequest httpServletRequest;
+
+    public void count(){
+        System.out.println("-------------------- IP COUNT ----------------------");
+        // 每次调用当前操作，就记录当前访问的IP，然后累加访问次数
+        // 1. 获取当前操作的IP地址
+        String ip = httpServletRequest.getRemoteAddr();
+        // 2. 根据IP地址从Map中取值，并递增,再重新放回集合中
+        Integer ipCount = ipCountMap.get(ip);
+        if (ipCount == null){
+            ipCountMap.put(ip,1);
+        }else{
+            ipCountMap.put(ip,(ipCount + 1));
+        }
+    }
+}
+```
+- 编写自动配置类
+```java
+// 该类已在spring.factories中声明为bean了，所以可以直接@Bean
+public class IpAutoConfiguration {
+    @Bean
+    public IpCountService ipCountService(){
+        return new IpCountService();
+    }
+}
+```
+- 编写自动配置文件 META-INF/spring.factories
+```properties
+# Auto Configure
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+cn.engulf.autoconfig.IpAutoConfiguration
+```
+- 在使用自定义starter时，先安装starter到本地仓库中
+```text
+maven -> 选择clean和install
+```
+- 设置定时任务，定时展示 (IpCountService)
+```java
+    /**
+     * 展示统计数据
+     */
+    @Scheduled(cron = "0/5 * * * * ?")
+    public void showIpCounts(){
+        System.out.println("<----------         IP 访问监控       --------------->");
+        System.out.println("+-------- ip_address ---------+----- ip_counts -----+");
+        for (Map.Entry<String, Integer> entry : ipCountMap.entrySet()) {
+            String key = entry.getKey();
+            Integer value = entry.getValue();
+            System.out.println(String.format("|%26s   |         %-12d|",key,value));
+        }
+        System.out.println("+-----------------------------+---------------------+");
+    }
+```

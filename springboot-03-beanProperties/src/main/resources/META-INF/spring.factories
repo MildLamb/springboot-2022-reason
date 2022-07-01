@@ -1,3 +1,4 @@
 # Auto Configure
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.mildlamb.pojo.Spirit
+com.mildlamb.pojo.Lamb,\
+    com.mildlamb.pojo.Spirit
