@@ -17,5 +17,48 @@ Springboot04StartupApplication.jav【10】  ->  SpringApplication.run(Springboot
             this.mainApplicationClass = deduceMainApplicationClass();
 
 
-            # 初始化容器
+            # 初始化容器,得到ApplicationContext对象
             |-> new SpringApplication(primarySources).run(args)
+
+
+            public ConfigurableApplicationContext run(String... args) {
+                    // 设定计时器
+            		long startTime = System.nanoTime();
+            		// 系统引导信息的上下文对象
+            		DefaultBootstrapContext bootstrapContext = createBootstrapContext();
+            		ConfigurableApplicationContext context = null;
+            		// 模拟输入输出信号，避免出现因缺少外设导致的信号传输失败，进而引发错误(模拟显示器，键盘，鼠标等等...)
+            		configureHeadlessProperty();               // 就是设置系统属性 java.awt.handless=true
+            		// 获取当前注册的所有可运行监听器
+            		SpringApplicationRunListeners listeners = getRunListeners(args);
+            		// 监听器执行了对应的(这个是starting)操作步骤
+            		listeners.starting(bootstrapContext, this.mainApplicationClass);
+            		    // 获取args参数值
+            			ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
+            			// 将前面读取的数据加载成一个环境对象，用来描述信息
+            			ConfigurableEnvironment environment = prepareEnvironment(listeners, bootstrapContext, applicationArguments);
+            			// 配置了一个系统属性(spring.beaninfo.ignore)
+            			configureIgnoreBeanInfo(environment);
+            			// 初始化图标
+            			Banner printedBanner = printBanner(environment);
+            			// 创建容器对象，根据前期配置的容器类型进行判定并创建
+            			context = createApplicationContext();
+            			// 设置启动模式
+            			context.setApplicationStartup(this.applicationStartup);
+            			// 对容器进行设置，参数来源于前期的设定
+            			prepareContext(bootstrapContext, context, environment, listeners, applicationArguments, printedBanner);
+            			// 刷新容器环境
+            			refreshContext(context);
+            			// 刷新后的操作
+            			afterRefresh(context, applicationArguments);
+            			Duration timeTakenToStartup = Duration.ofNanos(System.nanoTime() - startTime);
+            			// 判断是否使用记录启动时间的日志
+            			if (this.logStartupInfo) {
+            			    // 创建日志对应的对象，输出日志信息，包含启动时间
+            				new StartupInfoLogger(this.mainApplicationClass).logStarted(getApplicationLog(), timeTakenToStartup);
+            			}
+            			listeners.started(context, timeTakenToStartup);
+            			callRunners(context, applicationArguments);
+            			Duration timeTakenToReady = Duration.ofNanos(System.nanoTime() - startTime);
+            			listeners.ready(context, timeTakenToReady);
+            	}
