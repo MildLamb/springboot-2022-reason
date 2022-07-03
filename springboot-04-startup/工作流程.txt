@@ -1,0 +1,21 @@
+Springboot04StartupApplication.jav【10】  ->  SpringApplication.run(Springboot04StartupApplication.class, args);
+    |——>    SpringApplication.class【1294】 ->  return run(new Class<?>[] { primarySource }, args);
+        |——>    SpringApplication.class【1306】 ->  return new SpringApplication(primarySources).run(args);
+            # 加载各种配置信息，初始化各种配置对象
+            |-> new SpringApplication(primarySources)
+
+            # 获取系统配置引导信息
+            this.bootstrapRegistryInitializers = new ArrayList<>(getSpringFactoriesInstances(BootstrapRegistryInitializer.class));
+
+            # 获取 ApplicationContextInitializer.class 对应的实例
+            setInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
+
+            # 初始化监听器，对初始化过程及运行过程进行干预
+            setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
+
+            # 初始化主启动类名信息，以供后续使用
+            this.mainApplicationClass = deduceMainApplicationClass();
+
+
+            # 初始化容器
+            |-> new SpringApplication(primarySources).run(args)
